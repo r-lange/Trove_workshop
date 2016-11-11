@@ -18,7 +18,7 @@ library(dplyr)
 library(shiny)
 library(DT)
 library(stringr)
-
+options(stringsAsFactors=FALSE)
 url_base="http://api.trove.nla.gov.au/result?key="
 api_key="u0pi59qa33f2f3e2"
 zone="&zone="
@@ -69,40 +69,46 @@ server <- function(input, output) {
   paste0(url_base,k,zone,z,query,q,type)
 }
 
+  query_data <- reactive({
+    q=url_query(input$api_key,input$zone_name,input$question)
+    json_file=jsonlite::fromJSON(q, flatten = T)
+    tmp=json_file$response$zone[[6]]
+    tmp=as.data.frame(json_file$response$zone[[6]])
+  })
+
+
   output$question_out <- renderText({
     input$go_query
     isolate({
       # qr=paste("Your query included:\n",input$zone_name,"\n",input$question)
-      q=url_query(input$api_key,input$zone_name,input$question)
+       q=url_query(input$api_key,input$zone_name,input$question)
     })
-  })
-
-  json_file <- reactive({
-    q=url_query(input$api_key,input$zone_name,input$question)
-    json_file=jsonlite::fromJSON(q)
-  })
-  query_data <- reactive({
-    my.data <- json_file()
-    as.data.frame(my.data$response$zone$records[[5]])
   })
 
    output$query_out <- DT::renderDataTable({
      input$go_query
      isolate({
-     # q=url_query(input$api_key,input$zone_name,input$question)
-     # json_file=jsonlite::fromJSON(q)
-     # dat=as.data.frame(json_file$response$zone$records[[5]])
      if(nrow(query_data())>0){
-     DT::datatable(query_data(), options = list(pageLength = 20, autoWidth = TRUE))
+       my.data=query_data()
+       my.data$troveUrl <- paste0("<a href='",my.data$troveUrl,"' target='_blank'>",my.data$troveUrl,"</a>")
+     DT::datatable(my.data, options = list(pageLength = 20, autoWidth = TRUE), escape = F)
      } else DT::datatable(data = NULL)
    })
    })
 
-
    output$downloadData <- downloadHandler(
-     filename = function() { paste("Trove_query.csv") },
+
+     # This function returns a string which tells the client
+     # browser what name to use when saving the file.
+     filename = function() {
+       paste("Trove_query.csv", sep = ".")
+     },
+
+     # This function should write data to a file given to it by
+     # the argument 'file'.
      content = function(file) {
-       write.csv(query_data(), file)
+       my.df <- data.frame(lapply(query_data(), as.character), stringsAsFactors=FALSE)
+         write.csv(my.df, file, row.names = FALSE)
      }
    )
 

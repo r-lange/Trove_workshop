@@ -20,9 +20,9 @@ library(DT)
 library(stringr)
 options(stringsAsFactors=FALSE)
 url_base="http://api.trove.nla.gov.au/result?key="
-api_key="u0pi59qa33f2f3e2"
+
 zone="&zone="
-query="&q="
+query="&n=100&q="
 type="&encoding=json"
 json_file=jsonlite::fromJSON("curtin_kip.json")
 
@@ -45,11 +45,17 @@ ui <- fluidPage(
                                'collection', 'newspaper', 'list'),
                      selected = NULL
                       ),
+         selectInput("recl",
+                     "Level of information",
+                     choices = c('brief', 'full'),
+                     selected = 'brief'
+         ),
+ #        sliderInput(inputId = "year", label = "selcet the years of interest", min = 1800, max = 2016, value = c(1890,1950)),
          textInput("api_key",
                    "Please provide your Trove API key",
-                   value = api_key
+                   value = "u0pi59qa33f2f3e2"
                     ),
-         textAreaInput("question", "Please enter your query", value = "John Curtin"),
+         textAreaInput("question", "Please enter your query", value = "John Curtin Kip"),
          actionButton("go_query","Go"),
          downloadButton('downloadData', 'Download Data (as csv)')
       ),
@@ -66,8 +72,8 @@ server <- function(input, output) {
 
   url_query <- function(k,z,q){
     q=str_replace_all(q," ","%20")
-  paste0(url_base,k,zone,z,query,q,type)
-}
+    paste0(url_base,k,zone,z,query,q,type)
+  }
 
   query_data <- reactive({
     q=url_query(input$api_key,input$zone_name,input$question)
@@ -75,6 +81,13 @@ server <- function(input, output) {
     tmp=json_file$response$zone[[6]]
     tmp=as.data.frame(json_file$response$zone[[6]])
   })
+     # n=json_file$response$zone$records.next
+  # while(!is.null(n)){
+#   json_file=jsonlite::fromJSON(paste0("http://api.trove.nla.gov.au",n,"&key=",input$api_key), flatten = T)
+#   n=json_file$response$zone$records.next
+#   tmp=json_file$response$zone[[6]]
+#   dat=rbind(dat,tmp)
+# }
 
 
   output$question_out <- renderText({

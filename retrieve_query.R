@@ -27,6 +27,16 @@ json_file=jsonlite::fromJSON(url_query)
 
 dat=as.data.frame(json_file$response$zone$records$article)
 
+# library(devtools)
+# source_gist('https://gist.github.com/mrdwab/4205477') #loads the function
+#
+# ddf <- LinearizeNestedList(dd, LinearizeDataFrames = TRUE)
+# # ddf is now a list with two elements (Age and Month)
+#
+# ddf <- LinearizeNestedList(ddf, LinearizeDataFrames = TRUE)
+# # ddf is now a list with 3 elements (Age, `Month/Dates` and `Month/Month`)
+#
+# ddf <- as.data.frame.list(ddf)
 
 # json_file <- lapply(json_file, function(x) {
 #   x[sapply(x, is.null)] <- NA

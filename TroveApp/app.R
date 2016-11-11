@@ -46,9 +46,10 @@ ui <- fluidPage(
                      selected = NULL
                       ),
          textInput("api_key",
-                   "Please provide your Trove API key"
+                   "Please provide your Trove API key",
+                   value = api_key
                     ),
-         textAreaInput("question", "Please enter your query"),
+         textAreaInput("question", "Please enter your query", value = "John Curtin"),
          actionButton("go_query","Go"),
          downloadButton('downloadData', 'Download Data (as csv)')
       ),
@@ -76,23 +77,23 @@ server <- function(input, output) {
     })
   })
 
+  json_file <- reactive({
+    q=url_query(input$api_key,input$zone_name,input$question)
+    json_file=jsonlite::fromJSON(q)
+  })
   query_data <- reactive({
-    input$go_query
-    isolate({
-      q=url_query(input$api_key,input$zone_name,input$question)
-      json_file=jsonlite::fromJSON(q)
-      dat=as.data.frame(json_file$response$zone$records[[5]])
-    })
+    my.data <- json_file()
+    as.data.frame(my.data$response$zone$records[[5]])
   })
 
-   output$query_out <-   DT::renderDataTable({
+   output$query_out <- DT::renderDataTable({
      input$go_query
      isolate({
      # q=url_query(input$api_key,input$zone_name,input$question)
      # json_file=jsonlite::fromJSON(q)
      # dat=as.data.frame(json_file$response$zone$records[[5]])
      if(nrow(query_data())>0){
-     DT::datatable(query_dat(), options = list(pageLength = 20, autoWidth = TRUE))
+     DT::datatable(query_data(), options = list(pageLength = 20, autoWidth = TRUE))
      } else DT::datatable(data = NULL)
    })
    })
@@ -101,7 +102,7 @@ server <- function(input, output) {
    output$downloadData <- downloadHandler(
      filename = function() { paste("Trove_query.csv") },
      content = function(file) {
-       write.csv(x = query_data(), file = file, quote = F, row.names = F)
+       write.csv(query_data(), file)
      }
    )
 

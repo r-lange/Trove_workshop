@@ -70,9 +70,9 @@ server <- function(input, output) {
   }
 
   query_data <- reactive({
-    validate(
-      need(input$api_key, "Please provide an API key")
-    )
+    # validate(
+    #   need(input$api_key, "Please provide an API key")
+    # )
     q=url_query(input$api_key,input$zone_name,input$question)
     json_file=jsonlite::fromJSON(q, flatten = T)
 

@@ -18,6 +18,7 @@ library(dplyr)
 library(shiny)
 library(DT)
 library(stringr)
+library(curl)
 options(stringsAsFactors=FALSE)
 url_base="http://api.trove.nla.gov.au/result?key="
 

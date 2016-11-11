@@ -1,5 +1,5 @@
 # Trove_workshop
-R SHiny interface to Trove API with csv data download
+R SHiny interface to Trove API with csv data download option
 
 The Shiny webapp allows the interface with the Trove API.
 - An API key needs to be supplied for this to work.
@@ -12,3 +12,4 @@ The Shiny webapp allows the interface with the Trove API.
 Work To Do:
 - implement iteration of the search until all results are collated (i.e. there might be 200 records but the API only allows retrieval of 100 at a time)
 - implement input selection for years
+- inlcude proper error message when API key is not given

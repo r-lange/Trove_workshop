@@ -2,7 +2,10 @@
 # basic query
 # http://api.trove.nla.gov.au/result?key=<INSERT KEY>&zone=<ZONE NAME>&q=<YOUR SEARCH TERMS>
 
-library(RJSONIO)
+# library(RJSONIO)
+library(jsonlite)
+library(XML)
+library(plyr)
 library(dplyr)
 
 url_base="http://api.trove.nla.gov.au/result?key="
@@ -20,20 +23,22 @@ url_query2=paste0(url_base,api_key,zone,zone_name,query,question)
 download.file(url_query2,destfile = "curtin_kip.xml")
 
 # trying ot download the json data
-json_file=RJSONIO::fromJSON(url_query)
+json_file=jsonlite::fromJSON(url_query)
 
-json_file <- lapply(json_file, function(x) {
-  x[sapply(x, is.null)] <- NA
-  unlist(x)
-})
+dat=as.data.frame(json_file$response$zone$records$article)
 
-dat=do.call("rbind", json_file)
 
-dplyr::rbind_all(fromJSON(url_query))
+# json_file <- lapply(json_file, function(x) {
+#   x[sapply(x, is.null)] <- NA
+#   unlist(x)
+# })
+#
+# dat=do.call("rbind", json_file)
+#
+# dplyr::rbind_all(fromJSON(url_query))
 
 # working with the xml data
-library(XML)
-library(plyr)
+
 test=xmlToList(url_query2)
 
 testdf=ldply(xmlToList(url_query2), function(x) { data.frame(x) } )

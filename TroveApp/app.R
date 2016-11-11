@@ -22,7 +22,7 @@ options(stringsAsFactors=FALSE)
 url_base="http://api.trove.nla.gov.au/result?key="
 
 zone="&zone="
-query="&n=100&q="
+query="&q="
 type="&encoding=json"
 json_file=jsonlite::fromJSON("curtin_kip.json")
 
@@ -52,8 +52,7 @@ ui <- fluidPage(
          ),
  #        sliderInput(inputId = "year", label = "selcet the years of interest", min = 1800, max = 2016, value = c(1890,1950)),
          textInput("api_key",
-                   "Please provide your Trove API key",
-                   value = "u0pi59qa33f2f3e2"
+                   "Please provide your Trove API key"
                     ),
          textAreaInput("question", "Please enter your query", value = "John Curtin Kip"),
          actionButton("go_query","Go"),
@@ -72,22 +71,23 @@ server <- function(input, output) {
 
   url_query <- function(k,z,q){
     q=str_replace_all(q," ","%20")
-    paste0(url_base,k,zone,z,query,q,type)
+    paste0(url_base,k,zone,z,query,q,type,"&n=100")
   }
 
   query_data <- reactive({
     q=url_query(input$api_key,input$zone_name,input$question)
     json_file=jsonlite::fromJSON(q, flatten = T)
-    tmp=json_file$response$zone[[6]]
-    tmp=as.data.frame(json_file$response$zone[[6]])
+
+    tmp=json_file$response$zone[[length(json_file$response$zone)]]
+    dat=as.data.frame(tmp)
+    # n=json_file$response$zone$records.next
+    # while(!is.null(n)){
+    #   json_file=jsonlite::fromJSON(paste0("http://api.trove.nla.gov.au",n,"&key=",input$api_key), flatten = T)
+    #   n=json_file$response$zone$records.next
+    #   tmp=json_file$response$zone[[6]]
+    #   dat=rbind(dat,tmp)
+    # }
   })
-     # n=json_file$response$zone$records.next
-  # while(!is.null(n)){
-#   json_file=jsonlite::fromJSON(paste0("http://api.trove.nla.gov.au",n,"&key=",input$api_key), flatten = T)
-#   n=json_file$response$zone$records.next
-#   tmp=json_file$response$zone[[6]]
-#   dat=rbind(dat,tmp)
-# }
 
 
   output$question_out <- renderText({

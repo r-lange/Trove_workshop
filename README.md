@@ -18,4 +18,5 @@ https://rebeccalange.shinyapps.io/TroveApp/
 - implement iteration of the search until all results are collated (i.e. there might be 200 records but the API only allows retrieval of 100 at a time)
 - implement input selection for years
 - inlcude proper error message when API key is not given
+- remove leading and trailing spaces in inputs
 

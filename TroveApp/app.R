@@ -24,10 +24,6 @@ url_base="http://api.trove.nla.gov.au/result?key="
 zone="&zone="
 query="&q="
 type="&encoding=json"
-json_file=jsonlite::fromJSON("curtin_kip.json")
-
-# zone_name="newspaper"
-# question="john%20curtin%20kip"
 
 
 # Define UI for application that draws a histogram
@@ -38,7 +34,7 @@ ui <- fluidPage(
 
    # Sidebar with a slider input for number of bins
    sidebarLayout(
-      sidebarPanel(
+      sidebarPanel( width = 3,
          selectInput("zone_name",
                      "Select the Zone of interest:",
                      choices = c('book', 'picture', 'article', 'music', 'map',
@@ -52,21 +48,20 @@ ui <- fluidPage(
          ),
  #        sliderInput(inputId = "year", label = "selcet the years of interest", min = 1800, max = 2016, value = c(1890,1950)),
          textInput("api_key",
-                   "Please provide your Trove API key"
+                   "Please provide your Trove API key",
+                   value=NULL
                     ),
          textAreaInput("question", "Please enter your query", value = "John Curtin Kip"),
          actionButton("go_query","Go"),
          downloadButton('downloadData', 'Download Data (as csv)')
       ),
 
-      # Show a plot of the generated distribution
       mainPanel(
         textOutput("question_out"),
           DT::dataTableOutput("query_out"))
    )
 )
 
-# Define server logic required to draw a histogram
 server <- function(input, output) {
 
   url_query <- function(k,z,q){
@@ -75,6 +70,9 @@ server <- function(input, output) {
   }
 
   query_data <- reactive({
+    validate(
+      need(input$api_key, "Please provide an API key")
+    )
     q=url_query(input$api_key,input$zone_name,input$question)
     json_file=jsonlite::fromJSON(q, flatten = T)
 
@@ -93,7 +91,6 @@ server <- function(input, output) {
   output$question_out <- renderText({
     input$go_query
     isolate({
-      # qr=paste("Your query included:\n",input$zone_name,"\n",input$question)
        q=url_query(input$api_key,input$zone_name,input$question)
     })
   })
@@ -101,7 +98,7 @@ server <- function(input, output) {
    output$query_out <- DT::renderDataTable({
      input$go_query
      isolate({
-     if(nrow(query_data())>0){
+     if(nrow(query_data())>0 & !is.null(query_data())){
        my.data=query_data()
        my.data$troveUrl <- paste0("<a href='",my.data$troveUrl,"' target='_blank'>",my.data$troveUrl,"</a>")
      DT::datatable(my.data, options = list(pageLength = 20, autoWidth = TRUE), escape = F)

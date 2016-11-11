@@ -16,19 +16,18 @@ library(XML)
 library(plyr)
 library(dplyr)
 library(shiny)
+library(DT)
+library(stringr)
 
 url_base="http://api.trove.nla.gov.au/result?key="
-# api_key="u0pi59qa33f2f3e2"
+api_key="u0pi59qa33f2f3e2"
 zone="&zone="
 query="&q="
 type="&encoding=json"
+json_file=jsonlite::fromJSON("curtin_kip.json")
 
 # zone_name="newspaper"
 # question="john%20curtin%20kip"
-
-url_query=paste0(url_base,api_key,zone,zone_name,query,question,type)
-url_query2=paste0(url_base,api_key,zone,zone_name,query,question)
-
 
 
 # Define UI for application that draws a histogram
@@ -50,27 +49,62 @@ ui <- fluidPage(
                    "Please provide your Trove API key"
                     ),
          textAreaInput("question", "Please enter your query"),
-         actionButton("go_query","Go")
+         actionButton("go_query","Go"),
+         downloadButton('downloadData', 'Download Data (as csv)')
       ),
 
       # Show a plot of the generated distribution
       mainPanel(
-         tableOutput("query_out")
-      )
+        textOutput("question_out"),
+          DT::dataTableOutput("query_out"))
    )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-   output$query_out <- renderTable({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2]
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
+  url_query <- function(k,z,q){
+    q=str_replace_all(q," ","%20")
+  paste0(url_base,k,zone,z,query,q,type)
+}
 
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
+  output$question_out <- renderText({
+    input$go_query
+    isolate({
+      # qr=paste("Your query included:\n",input$zone_name,"\n",input$question)
+      q=url_query(input$api_key,input$zone_name,input$question)
+    })
+  })
+
+  query_data <- reactive({
+    input$go_query
+    isolate({
+      q=url_query(input$api_key,input$zone_name,input$question)
+      json_file=jsonlite::fromJSON(q)
+      dat=as.data.frame(json_file$response$zone$records[[5]])
+    })
+  })
+
+   output$query_out <-   DT::renderDataTable({
+     input$go_query
+     isolate({
+     # q=url_query(input$api_key,input$zone_name,input$question)
+     # json_file=jsonlite::fromJSON(q)
+     # dat=as.data.frame(json_file$response$zone$records[[5]])
+     if(nrow(query_data())>0){
+     DT::datatable(query_dat(), options = list(pageLength = 20, autoWidth = TRUE))
+     } else DT::datatable(data = NULL)
    })
+   })
+
+
+   output$downloadData <- downloadHandler(
+     filename = function() { paste("Trove_query.csv") },
+     content = function(file) {
+       write.csv(x = query_data(), file = file, quote = F, row.names = F)
+     }
+   )
+
 }
 
 # Run the application

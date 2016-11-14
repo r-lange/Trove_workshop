@@ -9,7 +9,7 @@ library(plyr)
 library(dplyr)
 
 url_base="http://api.trove.nla.gov.au/result?key="
-api_key="u0pi59qa33f2f3e2"
+api_key=""
 zone="&zone="
 query="&q="
 type="&encoding=json"
